@@ -17,7 +17,7 @@ def get_data(datapath = "./dataset/chars74k-lite/"):
     for (folder, dirname, files) in os.walk(datapath):
         for filename in files[1:]:
             relative_path = f"{folder}/{filename}"
-            image_data = np.append(image_data, get_image(relative_path))
+            image_data = np.append(image_data, get_image(relative_path), axis=1)
             labels = np.append(labels, 1)
     
     return image_data, labels
@@ -30,9 +30,9 @@ def fit():
 
 def main():
     image_data, labels = get_data("./dataset/chars74k-lite/")
-    print(f"image_data: {image_data[0]}")
+    print(f"image_data: {image_data}")
     x_training, x_testing, y_training, y_testing = split([image_data, labels], 20)
-    print(f"piss ass shit: {x_training[0]}")
+    print(f"input 1: {x_training[0]}\nlabel 1: {y_training[0]}")
 
 img = Image.open("./dataset/detection-images/detection-1.jpg")
 for (x, y, window) in sliding_window(image=img, stepSize=8, windowSize=(20, 20)):
