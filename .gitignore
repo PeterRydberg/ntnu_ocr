@@ -103,7 +103,7 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-code/dataset
+**/dataset
 
 
 # Created by https://www.gitignore.io/api/linux,macos,python,windows,jetbrains+all,visualstudiocode
@@ -363,7 +363,6 @@ ehthumbs_vista.db
 
 # Dump file
 *.stackdump
-
 # Folder config file
 [Dd]esktop.ini
 
