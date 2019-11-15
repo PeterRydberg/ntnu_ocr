@@ -49,22 +49,6 @@ def get_data(datapath = "./dataset/chars74k-lite/", use_hog=False):
 
 def split(data, test_size):
     return splitter.train_test_split(data[0], data[1], test_size=test_size)
-"""
-def get_trained_SVC(x_training, y_training):
-    svcExists = os.path.isfile("svc.pkl")
-    if svcExists:
-        print("Getting pre-trained SVC")
-        with open("svc.pkl", "rb") as f:
-            return pickle.load(f)
-    else:
-        print("Training...")
-        classifier = SVC(gamma="scale", probability=False)
-        classifier.fit(x_training, y_training)
-        with open("svc.pkl", "wb+") as f:
-            pickle.dump(classifier, f)
-        return classifier
-
-"""
 
 def get_trained_classifier(path, classifierTraining):
     savedExists = os.path.isfile(path)
@@ -140,7 +124,7 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
         predicted = classifier.predict([img_array])
         print(f"predicted of window: {predicted}")
         # Concatinate all predicated characters to a 
-        string += alphabetical_labels[predicted[0]]
+        string += get_letter_prediction(predicted) 
         if len(predicted) > 0:
             if not imgCopy: 
                 imgCopy = img.copy()
