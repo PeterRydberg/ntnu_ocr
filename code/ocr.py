@@ -12,6 +12,15 @@ import pickle
 
 alphabetical_labels = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
 
+def create_dump_folder_for_images():
+    print('Creating dump directory for output images')
+    try:
+        os.mkdir('./dump')
+        print('Successfully created dump folder')
+    except OSError:
+        print('Could not create a dump folder. Please create one in the same path as this file')
+
+
 def try_remove_element_from_list(fileList, element):
     try:
         fileList.remove(element)
@@ -165,6 +174,7 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
                 imgCopy = img.copy()
             imgCopy = draw_red_square(x = x, y = y, target_image = imgCopy, window = window)
     print(string)
+    create_dump_folder_for_images()
     imgCopy.save("./dump/concat.png", "PNG")
 
 if __name__ == "__main__":
