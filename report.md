@@ -46,9 +46,10 @@ able to? Explain.
 Image detection is a fundemental and exciting part of machine learning and as an exercise, fun to implement and try out. In this assignment the group decided to implement three different algorithms. The algorithms chosen were K Nearest Neighbor (K-NN), Support Vector Machine (SVM), and Artificial Neural Networks (ANN) which sklearn has methods to help implement.
 
 #### K-NN
-K-NN being an algorithms that is quite simple to implement and to understand, and the fact that it often performs quite well compared to many other algorithms^[2] makes it a quite good candidate for this task. 
+K-NN being an algorithm that is quite simple to implement, understand, and the fact that it often performs quite well compared to many other algorithms^[2], makes it a quite good candidate for this task. 
 
-When K-NN is used for pattern recognition the algorithm classifies the objects in an image based on the training data
+K-NN stores the training data with a label, and to make a prediction it 
+When K-NN is used for pattern recognition the algorithm classifies the objects in an image based on the feature space.
 
 With K-NN we got an accuracy of **XX**% on the test set
 
