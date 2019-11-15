@@ -1,6 +1,6 @@
 import os
 from PIL import Image, ImageDraw
-from imagetools import sliding_window, draw_red_square, run_function_per_window
+from imagetools import sliding_window, draw_red_square 
 from sklearn.svm import SVC
 import sklearn.model_selection as splitter
 from sklearn.metrics import classification_report
@@ -82,6 +82,7 @@ def main():
 def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/detection-images/detection-1.jpg"):
     global alphabetical_labels
     img = Image.open(image_path)
+    imgCopy = None
     winHeight = 20
     winWidth = 20
     string = ""
@@ -95,17 +96,12 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
         predicted = classifier.predict([img_array])
         print(f"predicted of window: {predicted}")
         string += alphabetical_labels[predicted[0]]
+        if len(predicted) > 0:
+            if not imgCopy: 
+                imgCopy = img.copy()
+            imgCopy = draw_red_square(x = x, y = y, target_image = imgCopy, window = window)
     print(string)
-    if False:
-        newImg = img.copy()
-        draw_red_square(x = x, y = y, target_image = newImg, window = window)
-        """
-        newImg = img.copy()
-        draw = ImageDraw.Draw(newImg) # Creates a copy of the image and draws on it
-        draw.rectangle((x,y) + (x + window.size[1], y + window.size[0]), fill=128)
-        print(f"X: {x}, Y: {y}, Window: {window.size}")
-        newImg.save(f"./dump/img{x}-{y}.png", "PNG")
-        """
+    imgCopy.save("./dump/concat.png", "PNG")
 
 if __name__ == "__main__":
     main()

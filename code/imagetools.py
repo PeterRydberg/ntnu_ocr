@@ -8,4 +8,5 @@ def sliding_window(image, stepSize, windowSize):
 def draw_red_square(x, y, target_image, window):
     draw = ImageDraw.Draw(target_image) 
     draw.rectangle((x,y) + (x + window.size[1], y + window.size[0]), outline="#ff0000")
-    target_image.save(f"./dump/img{x}-{y}.png", "PNG")
+    # target_image.save("./dump/img1.png", "PNG")
+    return target_image
