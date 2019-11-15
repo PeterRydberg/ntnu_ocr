@@ -1,6 +1,6 @@
 import os
 from PIL import Image, ImageDraw
-from imager import sliding_window, draw_red_square
+from imagetools import sliding_window, draw_red_square
 from sklearn.svm import SVC
 import sklearn.model_selection as splitter
 from sklearn.metrics import classification_report
@@ -57,7 +57,7 @@ img = Image.open("./dataset/detection-images/detection-1.jpg")
 for (x, y, window) in sliding_window(image=img, stepSize=8, windowSize=(20, 20)):
 
     # Conditionally draw square if the probability is considered high enough
-    if False:
+    if True:
         newImg = img.copy()
         draw_red_square(x = x, y = y, target_image = newImg, window = window)
         """
