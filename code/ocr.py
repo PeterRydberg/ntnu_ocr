@@ -1,5 +1,5 @@
 import os
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 from imagetools import sliding_window, draw_red_square 
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
@@ -22,12 +22,15 @@ def remove_unwanted_files(fileList):
     try_remove_element_from_list(fileList, 'LICENSE')
     try_remove_element_from_list(fileList, '.DS_Store') # In case of running the program on a Mac.
 
-def get_image_as_array(filepath, use_hog):
+def get_image_as_array(filepath, use_hog, expand_inverted):
     img = Image.open(filepath)
-    return convert_image_to_array(img, use_hog)
+    return convert_image_to_array(img, use_hog, expand_inverted)
 
-def convert_image_to_array(img, use_hog):
-    if use_hog: img = hog(img, orientations=8, pixels_per_cell=(4, 4), cells_per_block=(4, 4), block_norm='L2', feature_vector=False)
+def convert_image_to_array(img, use_hog, expand_inverted):
+    if expand_inverted:
+        img = ImageOps.invert(img)
+    if use_hog:
+        img = hog(img, orientations=8, pixels_per_cell=(4, 4), cells_per_block=(4, 4), block_norm='L2', feature_vector=False)
     list_image = np.array(img, dtype=float).flatten()
     if list_image.max() == 0:
         return []
@@ -39,7 +42,7 @@ def get_percentage_of_white(img):
     numberOfWhite = np.count_nonzero(list_image == 255.)
     return numberOfWhite/400
 
-def get_data(datapath = "./dataset/chars74k-lite/", use_hog=False):
+def get_data(datapath = "./dataset/chars74k-lite/", use_hog=False, expand_inverted = False):
     image_data = []
     labels = []
 
@@ -47,8 +50,12 @@ def get_data(datapath = "./dataset/chars74k-lite/", use_hog=False):
         remove_unwanted_files(files)
         for filename in files:
             relative_path = f"{folder}/{filename}"
-            image_data.append(get_image_as_array(relative_path, use_hog))
+            image_data.append(get_image_as_array(relative_path, use_hog, False))
             labels.append(i-1)
+
+            if expand_inverted:
+                image_data.append(get_image_as_array(relative_path, use_hog, True))
+                labels.append(i-1)
     
     return image_data, labels
 
@@ -76,7 +83,7 @@ def evaluate_classifier(inputs, outputs, classifier):
     print(classification_report(outputs, predicted_test, target_names=alphabetical_labels))
 
 def main():
-    image_data, labels = get_data("./dataset/chars74k-lite/", True)
+    image_data, labels = get_data("./dataset/chars74k-lite/", use_hog=True, expand_inverted=True)
     x_training, x_testing, y_training, y_testing = split([image_data, labels], 0.2)
 
     ### SVC classification ###
@@ -142,7 +149,8 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
             continue
         if best_candidate:
             window = best_candidate
-        img_array = convert_image_to_array(window, use_hog = 1)
+        img_array = convert_image_to_array(window, use_hog = 1, expand_inverted = False)
+        # Conditionally draw square if the probability is considered high enough
 
         # Skip completely white images
         if len(img_array) == 0:
