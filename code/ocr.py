@@ -4,6 +4,7 @@ from imager import sliding_window
 from sklearn.svm import SVC
 import sklearn.model_selection as splitter
 from sklearn.metrics import classification_report
+from skimage.feature import hog
 import numpy as np
 
 alphabetical_labels = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
@@ -18,13 +19,14 @@ def remove_unwanted_files(fileList):
     try_remove_element_from_list(fileList, 'LICENSE')
     try_remove_element_from_list(fileList, '.DS_Store') # In case of running the program on a Mac.
 
-def get_image_as_array(filepath):
+def get_image_as_array(filepath, use_hog):
     img = Image.open(filepath)
+    if use_hog: img = hog(img, orientations=8, pixels_per_cell=(4, 4), cells_per_block=(4, 4), block_norm='L2', feature_vector=False)
     list_image = np.array(img, dtype=float).flatten()
     list_image *= (1.0/list_image.max())
     return list_image
 
-def get_data(datapath = "./dataset/chars74k-lite/"):
+def get_data(datapath = "./dataset/chars74k-lite/", use_hog=False):
     image_data = []
     labels = []
 
@@ -32,7 +34,7 @@ def get_data(datapath = "./dataset/chars74k-lite/"):
         remove_unwanted_files(files)
         for filename in files:
             relative_path = f"{folder}/{filename}"
-            image_data.append(get_image_as_array(relative_path))
+            image_data.append(get_image_as_array(relative_path, use_hog))
             labels.append(i-1)
     
     return image_data, labels
@@ -44,9 +46,9 @@ def fit(inputs, outputs):
     pass
 
 def main():
-    image_data, labels = get_data("./dataset/chars74k-lite/")
+    image_data, labels = get_data("./dataset/chars74k-lite/", True)
     x_training, x_testing, y_training, y_testing = split([image_data, labels], 0.2)
-    classifier = SVC(gamma="scale", verbose=True, probability=True)
+    classifier = SVC(gamma="scale", verbose=True, probability=False)
     classifier.fit(x_training, y_training)
     print(f"Classifying: {y_training[0]} and got {classifier.predict([x_training[0]])}")
 
