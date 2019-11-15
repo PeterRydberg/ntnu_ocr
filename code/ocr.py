@@ -3,6 +3,7 @@ from PIL import Image, ImageDraw
 from imagetools import sliding_window, draw_red_square
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neural_network import MLPClassifier
 import sklearn.model_selection as splitter
 from sklearn.metrics import classification_report
 from skimage.feature import hog
@@ -47,7 +48,6 @@ def fit(inputs, outputs):
     pass
 
 def get_letter_prediction(pred):
-    print(pred)
     return alphabetical_labels[int(pred)]
 
 def evaluate_classifier(inputs, outputs, classifier):
@@ -64,11 +64,18 @@ def main():
     #print(f"\n\nUsing SVC algorithm:\nClassifying: {get_letter_prediction(y_training[0])} and got {get_letter_prediction(classifier_SVC.predict([x_training[0]]))}\n")
     #evaluate_classifier(x_testing, y_testing, classifier_SVC)
 
-    ### K-nearest neighbors ###
-    classifier_KN = KNeighborsClassifier(n_neighbors=6, weights="distance")
-    classifier_KN.fit(x_training, y_training)
-    print(f"\n\nUsing K-nearest neighbor algorithm:\nClassifying: {get_letter_prediction(y_training[0])} and got {get_letter_prediction(classifier_KN.predict([x_training[0]]))}\n")
-    evaluate_classifier(x_testing, y_testing, classifier_KN)
+    ### K-nearest neighbors classification ###
+    #classifier_KN = KNeighborsClassifier(n_neighbors=6, weights="distance")
+    #classifier_KN.fit(x_training, y_training)
+    #print(f"\n\nUsing K-nearest neighbor algorithm:\nClassifying: {get_letter_prediction(y_training[0])} and got {get_letter_prediction(classifier_KN.predict([x_training[0]]))}\n")
+    #evaluate_classifier(x_testing, y_testing, classifier_KN)
+
+    ### ANN classification ###9
+    classifier_ANN = MLPClassifier(solver="adam", alpha=0.0001, learning_rate_init=0.001, max_iter=10000, activation="logistic", learning_rate="adaptive")
+    classifier_ANN.fit(x_training, y_training)
+    print(f"\n\nUsing neural network algorithm:\nClassifying: {get_letter_prediction(y_training[0])} and got {get_letter_prediction(classifier_ANN.predict([x_training[0]]))}\n")
+    evaluate_classifier(x_testing, y_testing, classifier_ANN)
+
 
 img = Image.open("./dataset/detection-images/detection-1.jpg")
 for (x, y, window) in sliding_window(image=img, stepSize=8, windowSize=(20, 20)):
