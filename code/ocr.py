@@ -49,7 +49,7 @@ def get_data(datapath = "./dataset/chars74k-lite/", use_hog=False):
 
 def split(data, test_size):
     return splitter.train_test_split(data[0], data[1], test_size=test_size)
-
+"""
 def get_trained_SVC(x_training, y_training):
     svcExists = os.path.isfile("svc.pkl")
     if svcExists:
@@ -64,6 +64,20 @@ def get_trained_SVC(x_training, y_training):
             pickle.dump(classifier, f)
         return classifier
 
+"""
+
+def get_trained_classifier(path, classifierTraining):
+    savedExists = os.path.isfile(path)
+    if savedExists:
+        print ("Getting pre-trained method")
+        with open(path, "rb") as f:
+            return pickle.load(f)
+    else:
+        print("Training...")
+        classifier = classifierTraining()
+        with open(path, "wb+") as f:
+            pickle.dump(classifier, f)
+        return classifier
 
 def get_letter_prediction(pred):
     return alphabetical_labels[int(pred)]
@@ -77,27 +91,33 @@ def main():
     x_training, x_testing, y_training, y_testing = split([image_data, labels], 0.2)
 
     ### SVC classification ###
-    #classifier_SVC = SVC(gamma="scale", verbose=True, probability=False)
-    #classifier_SVC.fit(x_training, y_training)
-    #print(f"\n\nUsing SVC algorithm:\nClassifying: {get_letter_prediction(y_training[0])} and got {get_letter_prediction(classifier_SVC.predict([x_training[0]]))}\n")
-    #evaluate_classifier(x_testing, y_testing, classifier_SVC)
+    def SVC_training_method():
+        classifier_SVC = SVC(gamma="scale", verbose=True, probability=False)
+        classifier_SVC.fit(x_training, y_training)
+        print(f"\n\nUsing SVC algorithm:\nClassifying: {get_letter_prediction(y_training[0])} and got {get_letter_prediction(classifier_SVC.predict([x_training[0]]))}\n")
+        evaluate_classifier(x_testing, y_testing, classifier_SVC)
+        return classifier_SVC
 
     ### K-nearest neighbors classification ###
-    #classifier_KN = KNeighborsClassifier(n_neighbors=6, weights="distance")
-    #classifier_KN.fit(x_training, y_training)
-    #print(f"\n\nUsing K-nearest neighbor algorithm:\nClassifying: {get_letter_prediction(y_training[0])} and got {get_letter_prediction(classifier_KN.predict([x_training[0]]))}\n")
-    #evaluate_classifier(x_testing, y_testing, classifier_KN)
+    def KNN_training_method():
+        classifier_KN = KNeighborsClassifier(n_neighbors=6, weights="distance")
+        classifier_KN.fit(x_training, y_training)
+        print(f"\n\nUsing K-nearest neighbor algorithm:\nClassifying: {get_letter_prediction(y_training[0])} and got {get_letter_prediction(classifier_KN.predict([x_training[0]]))}\n")
+        evaluate_classifier(x_testing, y_testing, classifier_KN)
+        return classifier_KN
 
     ### ANN classification ###
-    classifier_ANN = MLPClassifier(solver="adam", alpha=0.0001, learning_rate_init=0.001, max_iter=10000, activation="logistic", learning_rate="adaptive")
-    classifier_ANN.fit(x_training, y_training)
-    print(f"\n\nUsing neural network algorithm:\nClassifying: {get_letter_prediction(y_training[0])} and got {get_letter_prediction(classifier_ANN.predict([x_training[0]]))}\n")
-    evaluate_classifier(x_testing, y_testing, classifier_ANN)
+    def ANN_training_method():
+        classifier_ANN = MLPClassifier(solver="adam", alpha=0.0001, learning_rate_init=0.001, max_iter=10000, activation="logistic", learning_rate="adaptive")
+        classifier_ANN.fit(x_training, y_training)
+        print(f"\n\nUsing neural network algorithm:\nClassifying: {get_letter_prediction(y_training[0])} and got {get_letter_prediction(classifier_ANN.predict([x_training[0]]))}\n")
+        evaluate_classifier(x_testing, y_testing, classifier_ANN)
+        return classifier_ANN
 
     # Testing with different classifiers
-    #check_windows_in_image_with_classifier(classifier = classifier_SVC)
-    #check_windows_in_image_with_classifier(classifier = classifier_KN)
-    check_windows_in_image_with_classifier(classifier = classifier_ANN)
+    #check_windows_in_image_with_classifier(classifier = get_trained_classifier("svc.pkl", SVC_training_method))
+    #check_windows_in_image_with_classifier(classifier = get_trained_classifier("knn.pkl", "KNN_training_method"))
+    check_windows_in_image_with_classifier(classifier = get_trained_classifier("ann.pkl", "ANN_training_method"))
 
 def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/detection-images/detection-1.jpg"):
     global alphabetical_labels
