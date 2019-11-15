@@ -46,16 +46,17 @@ def get_data(datapath = "./dataset/chars74k-lite/", use_hog=False, expand_invert
     image_data = []
     labels = []
 
-    for i, (folder, dirname, files) in enumerate(os.walk(datapath)):
+    for (folder, dirname, files) in os.walk(datapath):
         remove_unwanted_files(files)
+        folder_letter = folder.split("/")[-1]
         for filename in files:
             relative_path = f"{folder}/{filename}"
             image_data.append(get_image_as_array(relative_path, use_hog, False))
-            labels.append(i-1)
+            labels.append(folder_letter)
 
             if expand_inverted:
                 image_data.append(get_image_as_array(relative_path, use_hog, True))
-                labels.append(i-1)
+                labels.append(folder_letter)
     
     return image_data, labels
 
@@ -76,7 +77,8 @@ def get_trained_classifier(path, classifierTraining):
         return classifier
 
 def get_letter_prediction(pred):
-    return alphabetical_labels[int(pred)]
+    return pred
+    # return alphabetical_labels[int(pred)]
 
 def evaluate_classifier(inputs, outputs, classifier):
     predicted_test = classifier.predict(inputs)
@@ -88,7 +90,7 @@ def main():
 
     ### SVC classification ###
     def SVC_training_method():
-        classifier_SVC = SVC(gamma="scale", verbose=True, probability=False)
+        classifier_SVC = SVC(gamma="scale", verbose=False, probability=False)
         classifier_SVC.fit(x_training, y_training)
         print(f"\n\nUsing SVC algorithm:\nClassifying: {get_letter_prediction(y_training[0])} and got {get_letter_prediction(classifier_SVC.predict([x_training[0]]))}\n")
         evaluate_classifier(x_testing, y_testing, classifier_SVC)
@@ -127,13 +129,13 @@ def scan_image_for_area_with_less_white(x, y, image, white_percentage = 1):
                 best_image = candidate
     return best_image, best_white
 
-def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/detection-images/detection-3.jpg"):
+def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/detection-images/detection-2.jpg"):
     img = Image.open(image_path)
     imgCopy = None
     winHeight = 20
     winWidth = 20
     string = ""
-    for (x, y, window) in sliding_window(img, stepSize = 6, windowSize=(winHeight, winWidth)):
+    for (x, y, window) in sliding_window(img, stepSize = 8, windowSize=(winHeight, winWidth)):
         # Skip windows which surpasses image border
         if window.size[0] != winHeight or window.size[1] != winWidth:
             continue
@@ -141,24 +143,23 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
         white_percentage = get_percentage_of_white(window)
 
         # If more tn 90 percent of the image is white, it is highly probable that the classifier will be incorrect
-        if white_percentage > 0.5:
+        if white_percentage > 0.7:
             continue
 
         best_candidate, best_white = scan_image_for_area_with_less_white(x, y, img, white_percentage)
-        if best_white > 0.5:
+        if best_white > 0.7:
             continue
         if best_candidate:
             window = best_candidate
         img_array = convert_image_to_array(window, use_hog = 1, expand_inverted = False)
-        # Conditionally draw square if the probability is considered high enough
 
         # Skip completely white images
         if len(img_array) == 0:
             continue
 
-        predicted = classifier.predict([img_array])
-        print(f"predicted of window: {predicted}")
-        string += get_letter_prediction(predicted) 
+        predicted = classifier.predict(img_array.reshape(1, -1))
+        #print(f"predicted of window: {predicted}")
+        string += get_letter_prediction(predicted[0]) 
         if len(predicted) > 0:
             if not imgCopy: 
                 imgCopy = img.copy()
