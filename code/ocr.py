@@ -31,8 +31,13 @@ def convert_image_to_array(img, use_hog):
     list_image = np.array(img, dtype=float).flatten()
     if list_image.max() == 0:
         return []
-    list_image *= (1.0/list_image.max())
+    # list_image *= (1.0/list_image.max())
     return list_image
+
+def get_percentage_of_white(img):
+    list_image = np.array(img, dtype=float).flatten()
+    numberOfWhite = np.count_nonzero(list_image == 255.)
+    return numberOfWhite/400
 
 def get_data(datapath = "./dataset/chars74k-lite/", use_hog=False):
     image_data = []
@@ -99,23 +104,45 @@ def main():
         return classifier_ANN
 
     # Testing with different classifiers
-    #check_windows_in_image_with_classifier(classifier = get_trained_classifier("svc.pkl", SVC_training_method))
+    check_windows_in_image_with_classifier(classifier = get_trained_classifier("svc.pkl", SVC_training_method))
     #check_windows_in_image_with_classifier(classifier = get_trained_classifier("knn.pkl", KNN_training_method))
-    check_windows_in_image_with_classifier(classifier = get_trained_classifier("ann.pkl", ANN_training_method))
+    #check_windows_in_image_with_classifier(classifier = get_trained_classifier("ann.pkl", ANN_training_method))
 
-def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/detection-images/detection-1.jpg"):
-    global alphabetical_labels
+def scan_image_for_area_with_less_white(x, y, image, white_percentage = 1):
+    best_white = white_percentage
+    best_image = None
+    for x1 in range(x - 15, x + 15):
+        for y1 in range(y - 15, y + 15):
+            candidate = image.crop([x1, y1, x1 + 20, y1 + 20])
+            white_in_candidate = get_percentage_of_white(candidate)
+            if white_in_candidate < best_white:
+                best_white = white_in_candidate
+                best_image = candidate
+    return best_image, best_white
+
+def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/detection-images/detection-3.jpg"):
     img = Image.open(image_path)
     imgCopy = None
     winHeight = 20
     winWidth = 20
     string = ""
-    for (x, y, window) in sliding_window(img, stepSize = 8, windowSize=(winHeight, winWidth)):
+    for (x, y, window) in sliding_window(img, stepSize = 6, windowSize=(winHeight, winWidth)):
         # Skip windows which surpasses image border
         if window.size[0] != winHeight or window.size[1] != winWidth:
             continue
 
-        img_array = convert_image_to_array(window, use_hog = True)
+        white_percentage = get_percentage_of_white(window)
+
+        # If more tn 90 percent of the image is white, it is highly probable that the classifier will be incorrect
+        if white_percentage > 0.5:
+            continue
+
+        best_candidate, best_white = scan_image_for_area_with_less_white(x, y, img, white_percentage)
+        if best_white > 0.5:
+            continue
+        if best_candidate:
+            window = best_candidate
+        img_array = convert_image_to_array(window, use_hog = 1)
 
         # Skip completely white images
         if len(img_array) == 0:
@@ -123,7 +150,6 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
 
         predicted = classifier.predict([img_array])
         print(f"predicted of window: {predicted}")
-        # Concatinate all predicated characters to a 
         string += get_letter_prediction(predicted) 
         if len(predicted) > 0:
             if not imgCopy: 
