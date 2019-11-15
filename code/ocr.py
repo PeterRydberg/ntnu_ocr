@@ -118,14 +118,20 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
     winWidth = 20
     string = ""
     for (x, y, window) in sliding_window(img, stepSize = 8, windowSize=(winHeight, winWidth)):
+        # Skip windows which surpasses image border
         if window.size[0] != winHeight or window.size[1] != winWidth:
             continue
+
         # Conditionally draw square if the probability is considered high enough
         img_array = convert_image_to_array(window, use_hog = True, expand_inverted = False)
+
+        # Skip completely white images
         if len(img_array) == 0:
             continue
+
         predicted = classifier.predict([img_array])
         print(f"predicted of window: {predicted}")
+        # Concatinate all predicated characters to a 
         string += alphabetical_labels[predicted[0]]
         if len(predicted) > 0:
             if not imgCopy: 
