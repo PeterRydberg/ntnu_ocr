@@ -2,6 +2,7 @@ import os
 from PIL import Image, ImageDraw
 from imagetools import sliding_window, draw_red_square
 from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
 import sklearn.model_selection as splitter
 from sklearn.metrics import classification_report
 from skimage.feature import hog
@@ -45,15 +46,29 @@ def split(data, test_size):
 def fit(inputs, outputs):
     pass
 
+def get_letter_prediction(pred):
+    print(pred)
+    return alphabetical_labels[int(pred)]
+
+def evaluate_classifier(inputs, outputs, classifier):
+    predicted_test = classifier.predict(inputs)
+    print(classification_report(outputs, predicted_test, target_names=alphabetical_labels))
+
 def main():
     image_data, labels = get_data("./dataset/chars74k-lite/", True)
     x_training, x_testing, y_training, y_testing = split([image_data, labels], 0.2)
-    classifier = SVC(gamma="scale", verbose=True, probability=False)
-    classifier.fit(x_training, y_training)
-    print(f"Classifying: {y_training[0]} and got {classifier.predict([x_training[0]])}")
 
-    predicted_test = classifier.predict(x_testing)
-    print(classification_report(y_testing, predicted_test, target_names=alphabetical_labels))
+    ### SVC classification ###
+    #classifier_SVC = SVC(gamma="scale", verbose=True, probability=False)
+    #classifier_SVC.fit(x_training, y_training)
+    #print(f"\n\nUsing SVC algorithm:\nClassifying: {get_letter_prediction(y_training[0])} and got {get_letter_prediction(classifier_SVC.predict([x_training[0]]))}\n")
+    #evaluate_classifier(x_testing, y_testing, classifier_SVC)
+
+    ### K-nearest neighbors ###
+    classifier_KN = KNeighborsClassifier(n_neighbors=6, weights="distance")
+    classifier_KN.fit(x_training, y_training)
+    print(f"\n\nUsing K-nearest neighbor algorithm:\nClassifying: {get_letter_prediction(y_training[0])} and got {get_letter_prediction(classifier_KN.predict([x_training[0]]))}\n")
+    evaluate_classifier(x_testing, y_testing, classifier_KN)
 
 img = Image.open("./dataset/detection-images/detection-1.jpg")
 for (x, y, window) in sliding_window(image=img, stepSize=8, windowSize=(20, 20)):
