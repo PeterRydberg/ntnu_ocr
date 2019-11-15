@@ -18,7 +18,7 @@ def remove_unwanted_files(fileList):
     try_remove_element_from_list(fileList, 'LICENSE')
     try_remove_element_from_list(fileList, '.DS_Store') # In case of running the program on a Mac.
 
-def get_image(filepath):
+def get_image_as_array(filepath):
     img = Image.open(filepath)
     list_image = np.array(img, dtype=float).flatten()
     list_image *= (1.0/list_image.max())
@@ -32,7 +32,7 @@ def get_data(datapath = "./dataset/chars74k-lite/"):
         remove_unwanted_files(files)
         for filename in files:
             relative_path = f"{folder}/{filename}"
-            image_data.append(get_image(relative_path))
+            image_data.append(get_image_as_array(relative_path))
             labels.append(i-1)
     
     return image_data, labels
