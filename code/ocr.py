@@ -116,8 +116,8 @@ def main():
 
     # Testing with different classifiers
     #check_windows_in_image_with_classifier(classifier = get_trained_classifier("svc.pkl", SVC_training_method))
-    #check_windows_in_image_with_classifier(classifier = get_trained_classifier("knn.pkl", "KNN_training_method"))
-    check_windows_in_image_with_classifier(classifier = get_trained_classifier("ann.pkl", "ANN_training_method"))
+    #check_windows_in_image_with_classifier(classifier = get_trained_classifier("knn.pkl", KNN_training_method))
+    check_windows_in_image_with_classifier(classifier = get_trained_classifier("ann.pkl", ANN_training_method))
 
 def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/detection-images/detection-1.jpg"):
     global alphabetical_labels
@@ -133,11 +133,13 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
 
         img_array = convert_image_to_array(window, use_hog = True)
 
-        # Skip empty images
+        # Skip completely white images
         if len(img_array) == 0:
             continue
+
         predicted = classifier.predict([img_array])
         print(f"predicted of window: {predicted}")
+        # Concatinate all predicated characters to a 
         string += alphabetical_labels[predicted[0]]
         if len(predicted) > 0:
             if not imgCopy: 
