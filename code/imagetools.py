@@ -1,4 +1,4 @@
-from PIL import ImageDraw
+from PIL import ImageDraw, ImageColor
 
 def sliding_window(image, stepSize, windowSize):
     for y in range(0, image.size[1], stepSize):
@@ -7,6 +7,5 @@ def sliding_window(image, stepSize, windowSize):
 
 def draw_red_square(x, y, target_image, window):
     draw = ImageDraw.Draw(target_image) 
-    draw.rectangle((x,y) + (x + window.size[1], y + window.size[0]), outline="red")
-    print(f"X: {x}, Y: {y}, Window: {window.size}")
+    draw.rectangle((x,y) + (x + window.size[1], y + window.size[0]), outline=ImageColor.getrbg("red"))
     target_image.save(f"./dump/img{x}-{y}.png", "PNG")
