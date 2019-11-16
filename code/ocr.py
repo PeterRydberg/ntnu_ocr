@@ -74,15 +74,18 @@ def get_data(datapath = "./dataset/chars74k-lite/", use_hog=False, expand_invert
 def split(data, test_size):
     return splitter.train_test_split(data[0], data[1], test_size=test_size)
 
-def get_trained_classifier(path, classifierTraining):
+def get_trained_classifier(path, classifierTraining, use_hog, expand_inverted):
     savedExists = os.path.isfile(path)
     if savedExists:
-        print ("Getting pre-trained method")
+        print ("Getting pre-trained model...")
         with open(path, "rb") as f:
             return pickle.load(f)
     else:
-        print("Training...")
-        classifier = classifierTraining()
+        print("Training new model...")
+        image_data, labels = get_data("./dataset/chars74k-lite/", use_hog, expand_inverted)
+        x_training, x_testing, y_training, y_testing = split([image_data, labels], 0.2)
+        
+        classifier = classifierTraining(x_training, x_testing, y_training, y_testing)
         with open(path, "wb+") as f:
             pickle.dump(classifier, f)
         return classifier
@@ -92,11 +95,8 @@ def evaluate_classifier(inputs, outputs, classifier):
     print(classification_report(outputs, predicted_test))
 
 def main():
-    image_data, labels = get_data("./dataset/chars74k-lite/", use_hog=True, expand_inverted=True)
-    x_training, x_testing, y_training, y_testing = split([image_data, labels], 0.2)
-
     ### SVC classification ###
-    def SVC_training_method():
+    def SVC_training_method(x_training, x_testing, y_training, y_testing):
         classifier_SVC = SVC(gamma="scale", verbose=False, probability=False)
         classifier_SVC.fit(x_training, y_training)
         print(f"\n\nUsing SVC algorithm:\nClassifying: {y_training[0]} and got {classifier_SVC.predict([x_training[0]])}\n")
@@ -104,7 +104,7 @@ def main():
         return classifier_SVC
 
     ### K-nearest neighbors classification ###
-    def KNN_training_method():
+    def KNN_training_method(x_training, x_testing, y_training, y_testing):
         classifier_KN = KNeighborsClassifier(n_neighbors=6, weights="distance")
         classifier_KN.fit(x_training, y_training)
         print(f"\n\nUsing K-nearest neighbor algorithm:\nClassifying: {y_training[0]} and got {classifier_KN.predict([x_training[0]])}\n")
@@ -112,17 +112,17 @@ def main():
         return classifier_KN
 
     ### ANN classification ###
-    def ANN_training_method():
+    def ANN_training_method(x_training, x_testing, y_training, y_testing):
         classifier_ANN = MLPClassifier(solver="adam", alpha=0.0001, learning_rate_init=0.001, max_iter=20000, activation="logistic", learning_rate="adaptive")
         classifier_ANN.fit(x_training, y_training)
         print(f"\n\nUsing neural network algorithm:\nClassifying: {y_training[0]} and got {classifier_ANN.predict([x_training[0]])}\n")
         evaluate_classifier(x_testing, y_testing, classifier_ANN)
         return classifier_ANN
 
-    # Testing with different classifiers
-    #check_windows_in_image_with_classifier(classifier = get_trained_classifier("svc.pkl", SVC_training_method))
-    #check_windows_in_image_with_classifier(classifier = get_trained_classifier("knn.pkl", KNN_training_method))
-    check_windows_in_image_with_classifier(classifier = get_trained_classifier("ann.pkl", ANN_training_method))
+    # Testing with different classifiers. Uncomment to fetch any classifier to be used for the task.
+    #check_windows_in_image_with_classifier(classifier = get_trained_classifier("svc.pkl", SVC_training_method, True, True))
+    #check_windows_in_image_with_classifier(classifier = get_trained_classifier("knn.pkl", KNN_training_method, True, True))
+    check_windows_in_image_with_classifier(classifier = get_trained_classifier("ann.pkl", ANN_training_method, True, True))
 
 def scan_image_for_area_with_less_white(x, y, image, white_percentage = 1):
     best_white = white_percentage
@@ -157,7 +157,7 @@ def update_window_cache(window_cache, candidate_coords, prediction):
     # If no match was found, create a new entry with the given prediction
     if not updated:
         window_cache[candidate_coords] = {prediction: 1}
-    return window_cache 
+    return window_cache
 
 
 def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/detection-images/detection-2.jpg"):
