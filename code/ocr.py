@@ -160,7 +160,7 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
         except OSError:
             print("Failed to access local text-to-speech method for this device.")
     create_dump_folder_for_images()
-    imgCopy.save("./dump/concat.png", "PNG")
+    imgCopy.save("./dump/output.png", "PNG")
 
 if __name__ == "__main__":
     main()
