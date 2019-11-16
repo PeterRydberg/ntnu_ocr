@@ -10,6 +10,24 @@ import pyttsx3
 
 def main():
     arguments = sys.argv[1:]
+    if "-h" in arguments or "--help" in arguments:
+        print(f"""
+This program uses machine learning methods to predict written letters of different fonts, sizes, rotations, etc.
+Authors: johannkv, hmrydber, paaledwl
+
+    Usage: python ocr.py [METHOD] [--FLAGS]
+
+Available commands: \n
+        svc: Use SVC.
+        ann: Use ANN.
+        knn: Use KNN.\n
+        --help / -h: Display this text. \n
+        --no-save: Do not pickle and save trained classifier. \n
+        --train: Ignore existing pickles and retrain classifier. \n
+        --use-tts: Uses text-to-speech to read the perceived text. \n
+        --no-dump: Do not save output image to file.
+        """)
+        return
 
     ### SVC classification ###
     def SVC_training_method(x_training, x_testing, y_training, y_testing):
@@ -153,7 +171,8 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
         except OSError:
             print("Failed to access local text-to-speech method for this device.")
     create_dump_folder_for_images()
-    imgCopy.save("./dump/output.png", "PNG")
+    if not "--no-dump" in sys.argv[1:]:
+        imgCopy.save("./dump/output.png", "PNG")
 
 if __name__ == "__main__":
     main()
