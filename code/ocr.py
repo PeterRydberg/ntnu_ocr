@@ -12,9 +12,9 @@ import pickle
 import sys
 
 def create_dump_folder_for_images():
-    print('Creating dump directory for output images')
     if os.path.exists("./dump"):
         return
+    print('Creating dump directory for output images')
     try:
         os.mkdir("./dump")
         print("Successfully created dump folder")
@@ -34,7 +34,7 @@ def remove_unwanted_files(fileList):
 
 def get_image_as_array(filepath, use_hog, expand_inverted):
     img = Image.open(filepath)
-    img = Image.convert(mode="L")
+    img = img.convert(mode="L")
     img.resize((20, 20))
     return convert_image_to_array(img, use_hog, expand_inverted)
 
@@ -92,6 +92,7 @@ def evaluate_classifier(inputs, outputs, classifier):
     print(classification_report(outputs, predicted_test))
 
 def main():
+    arguments = sys.argv[1:]
     image_data, labels = get_data("./dataset/chars74k-lite/", use_hog=True, expand_inverted=True)
     x_training, x_testing, y_training, y_testing = split([image_data, labels], 0.2)
 
@@ -120,9 +121,15 @@ def main():
         return classifier_ANN
 
     # Testing with different classifiers
-    #check_windows_in_image_with_classifier(classifier = get_trained_classifier("svc.pkl", SVC_training_method))
-    #check_windows_in_image_with_classifier(classifier = get_trained_classifier("knn.pkl", KNN_training_method))
-    check_windows_in_image_with_classifier(classifier = get_trained_classifier("ann.pkl", ANN_training_method))
+    if arguments[0] == "svc":
+        check_windows_in_image_with_classifier(classifier = get_trained_classifier("svc.pkl", SVC_training_method))
+    elif arguments[0] == "knn":
+        check_windows_in_image_with_classifier(classifier = get_trained_classifier("knn.pkl", KNN_training_method))
+    elif arguments[0] == "ann":
+        check_windows_in_image_with_classifier(classifier = get_trained_classifier("ann.pkl", ANN_training_method))
+    else:
+        print("No method specified from command line, using ANN as default")
+        check_windows_in_image_with_classifier(classifier = get_trained_classifier("ann.pkl", ANN_training_method))
 
 def scan_image_for_area_with_less_white(x, y, image, white_percentage = 1):
     best_white = white_percentage
