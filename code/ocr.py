@@ -103,7 +103,7 @@ def update_window_cache(window_cache, candidate_coords, prediction):
     return window_cache
 
 
-def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/detection-images/detection-1.jpg"):
+def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/detection-images/detection-2.jpg"):
     img = Image.open(image_path)
     imgCopy = img.convert(mode = "RGB")
     winHeight = 20
@@ -111,10 +111,6 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
     string = ""
     checked_squares = {}
     for (x, y, window) in sliding_window(img, stepSize = 8, windowSize=(winHeight, winWidth)):
-
-        # Skip windows which surpasses image border
-        if window.size[0] != winHeight or window.size[1] != winWidth:
-            continue
 
         white_percentage = get_percentage_of_white(window)
 
@@ -129,7 +125,10 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
             window = best_candidate
         
         # If image has passed criterias, prepare it for prediction
-        img_array = convert_image_to_array(window, use_hog = 1, expand_inverted = False)
+        img_array = convert_image_to_array(window, use_hog = True, expand_inverted = False)
+
+        if len(img_array) == 0:
+            continue
 
         predicted = classifier.predict(img_array.reshape(1, -1))
 

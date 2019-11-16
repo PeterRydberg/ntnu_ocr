@@ -6,6 +6,8 @@ import numpy as np
 def sliding_window(image, stepSize, windowSize):
     for y in range(0, image.size[1], stepSize):
         for x in range(0, image.size[0], stepSize):
+            if (x + windowSize[0]) > image.size[0] or (y + windowSize [1]) > image.size[1]:
+                continue
             yield (x, y, image.crop([x, y, x + windowSize[1], y + windowSize[0]]))
 
 def draw_red_square(x, y, target_image):
