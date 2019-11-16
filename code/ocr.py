@@ -206,7 +206,8 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
     # Save output image to dump folder
     create_dump_folder_for_images()
     if not "--no-dump" in sys.argv[1:]:
-        imgCopy.save("./dump/output.png", "PNG")
+        img_name = image_path.split("/")[-1].split(".")[0]
+        imgCopy.save(f"./dump/output_{img_name}.png", "PNG")
     imgCopy.show()
     print("\nIf the result image did not automatically open, it can be found in the dump folder.")
 
