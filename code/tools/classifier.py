@@ -1,5 +1,5 @@
 import os
-from datatools import get_data, split
+from tools.data import get_data, split
 from sklearn.metrics import classification_report
 import pickle
 

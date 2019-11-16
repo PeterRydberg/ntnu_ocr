@@ -1,6 +1,6 @@
 from PIL import Image
-from imagetools import sliding_window, draw_red_square, draw_grey_square, create_dump_folder_for_images, get_image_as_array, convert_image_to_array, get_percentage_of_white
-from modeltools import get_trained_classifier
+from tools.image import sliding_window, draw_red_square, draw_grey_square, create_dump_folder_for_images, get_image_as_array, convert_image_to_array, get_percentage_of_white
+from tools.classifier import get_trained_classifier
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier

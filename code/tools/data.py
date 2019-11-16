@@ -1,6 +1,6 @@
 import os
 import sklearn.model_selection as splitter
-from imagetools import get_image_as_array
+from tools.image import get_image_as_array
 
 def remove_unwanted_files(fileList):
     try_remove_element_from_list(fileList, 'LICENSE')
