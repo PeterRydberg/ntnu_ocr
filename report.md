@@ -28,7 +28,7 @@ Create a virtual environment using the command `py -m venv env`, then activate t
 * `--use-tts`: Produces a text-to-speech voice which reads the text on the image.
 
 ### How to use
-When running the program, it will first fetch a classifier, either by training a new one or fetching a cached classifier from Pickle. Then the Sliding Window technique is 
+When running the program, it will first fetch a classifier, either by training a new one or fetching a cached classifier from Pickle. Then the Sliding Window technique is applied to a given image in order to detect present objects. The classifier is then used to detect which characters each object relates to, and prints the string (and reads it aloud if `--use-tts` is set).
 
 ## Feature Engineering
 - [x] b) Explain how each of the feature engineering techniques you selected work. Why did you select these techniques? Justify your answer.
