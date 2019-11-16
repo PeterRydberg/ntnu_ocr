@@ -1,5 +1,5 @@
 from PIL import Image
-from tools.image import sliding_window, draw_red_square, create_dump_folder_for_images, get_image_as_array, convert_image_to_array, get_percentage_of_white
+from tools.image import sliding_window, draw_red_square, create_dump_folder_for_images, convert_image_to_array, get_percentage_of_white
 from tools.classifier import get_trained_classifier
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
@@ -103,7 +103,7 @@ def update_window_cache(window_cache, candidate_coords, prediction):
     return window_cache
 
 
-def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/detection-images/detection-2.jpg"):
+def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/detection-images/detection-1.jpg"):
     img = Image.open(image_path)
     imgCopy = img.convert(mode = "RGB")
     winHeight = 20
@@ -130,11 +130,6 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
         
         # If image has passed criterias, prepare it for prediction
         img_array = convert_image_to_array(window, use_hog = 1, expand_inverted = False)
-
-        # Skip completely white images 
-        # TODO: Check whether this has any function now that we check white percentage
-        if len(img_array) == 0:
-            continue
 
         predicted = classifier.predict(img_array.reshape(1, -1))
 
