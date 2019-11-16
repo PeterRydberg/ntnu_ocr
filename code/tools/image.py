@@ -14,11 +14,6 @@ def draw_red_square(x, y, target_image):
     # target_image.save("./dump/img1.png", "PNG")
     return target_image
 
-def draw_grey_square(x, y, target_image, window):
-    draw = ImageDraw.Draw(target_image)
-    draw.rectangle((x,y) + (x + window.size[1], y + window.size[0]), outline="#333333")
-    return target_image
-
 def create_dump_folder_for_images():
     if os.path.exists("./dump"):
         return

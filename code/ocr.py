@@ -1,5 +1,5 @@
 from PIL import Image
-from tools.image import sliding_window, draw_red_square, draw_grey_square, create_dump_folder_for_images, get_image_as_array, convert_image_to_array, get_percentage_of_white
+from tools.image import sliding_window, draw_red_square, create_dump_folder_for_images, get_image_as_array, convert_image_to_array, get_percentage_of_white
 from tools.classifier import get_trained_classifier
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
@@ -136,13 +136,6 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
             checked_squares[best_cand_coords] = {predicted[0]: 1}
         else:
             checked_squares = update_window_cache(window_cache = checked_squares, candidate_coords = best_cand_coords, prediction = predicted[0])
-
-
-        # CACHE END
-
-        #print(f"predicted of window: {predicted}")
-        if len(predicted) > 0:
-            imgCopy = draw_grey_square(x = x, y = y, target_image = imgCopy, window = window)
     
     cache_prediction = ""
     for predictions in checked_squares.values():
@@ -151,7 +144,7 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
     for (x1, y1) in checked_squares.keys():
         imgCopy = draw_red_square(x = x1, y = y1, target_image = imgCopy)
     print(f"Most probable single solution: {cache_prediction}")
-    if len(sys.argv) > 2 and "--use-tts" in sys.argv[2:]:
+    if len(sys.argv) > 1 and "--use-tts" in sys.argv[1:]:
         try:
             tts_engine = pyttsx3.init()
             tts_engine.setProperty('rate', 10)
