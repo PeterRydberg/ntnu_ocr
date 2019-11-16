@@ -10,7 +10,6 @@ from skimage.feature import hog
 import numpy as np
 import pickle
 
-alphabetical_labels = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z']
 
 def create_dump_folder_for_images():
     print('Creating dump directory for output images')
@@ -33,17 +32,17 @@ def remove_unwanted_files(fileList):
 
 def get_image_as_array(filepath, use_hog, expand_inverted):
     img = Image.open(filepath)
+    img.resize((20, 20))
     return convert_image_to_array(img, use_hog, expand_inverted)
 
 def convert_image_to_array(img, use_hog, expand_inverted):
     if expand_inverted:
         img = ImageOps.invert(img)
     if use_hog:
-        img = hog(img, orientations=8, pixels_per_cell=(4, 4), cells_per_block=(4, 4), block_norm='L2', feature_vector=False)
+        img = hog(img, orientations=8, pixels_per_cell=(4, 4), cells_per_block=(4, 4), block_norm='L2', feature_vector=True)
     list_image = np.array(img, dtype=float).flatten()
     if list_image.max() == 0:
         return []
-    # list_image *= (1.0/list_image.max())
     return list_image
 
 def get_percentage_of_white(img):
@@ -85,13 +84,9 @@ def get_trained_classifier(path, classifierTraining):
             pickle.dump(classifier, f)
         return classifier
 
-def get_letter_prediction(pred):
-    return pred
-    # return alphabetical_labels[int(pred)]
-
 def evaluate_classifier(inputs, outputs, classifier):
     predicted_test = classifier.predict(inputs)
-    print(classification_report(outputs, predicted_test, target_names=alphabetical_labels))
+    print(classification_report(outputs, predicted_test))
 
 def main():
     image_data, labels = get_data("./dataset/chars74k-lite/", use_hog=True, expand_inverted=True)
@@ -101,7 +96,7 @@ def main():
     def SVC_training_method():
         classifier_SVC = SVC(gamma="scale", verbose=False, probability=False)
         classifier_SVC.fit(x_training, y_training)
-        print(f"\n\nUsing SVC algorithm:\nClassifying: {get_letter_prediction(y_training[0])} and got {get_letter_prediction(classifier_SVC.predict([x_training[0]]))}\n")
+        print(f"\n\nUsing SVC algorithm:\nClassifying: {y_training[0]} and got {classifier_SVC.predict([x_training[0]])}\n")
         evaluate_classifier(x_testing, y_testing, classifier_SVC)
         return classifier_SVC
 
@@ -109,22 +104,22 @@ def main():
     def KNN_training_method():
         classifier_KN = KNeighborsClassifier(n_neighbors=6, weights="distance")
         classifier_KN.fit(x_training, y_training)
-        print(f"\n\nUsing K-nearest neighbor algorithm:\nClassifying: {get_letter_prediction(y_training[0])} and got {get_letter_prediction(classifier_KN.predict([x_training[0]]))}\n")
+        print(f"\n\nUsing K-nearest neighbor algorithm:\nClassifying: {y_training[0]} and got {classifier_KN.predict([x_training[0]])}\n")
         evaluate_classifier(x_testing, y_testing, classifier_KN)
         return classifier_KN
 
     ### ANN classification ###
     def ANN_training_method():
-        classifier_ANN = MLPClassifier(solver="adam", alpha=0.0001, learning_rate_init=0.001, max_iter=10000, activation="logistic", learning_rate="adaptive")
+        classifier_ANN = MLPClassifier(solver="adam", alpha=0.0001, learning_rate_init=0.001, max_iter=20000, activation="logistic", learning_rate="adaptive")
         classifier_ANN.fit(x_training, y_training)
-        print(f"\n\nUsing neural network algorithm:\nClassifying: {get_letter_prediction(y_training[0])} and got {get_letter_prediction(classifier_ANN.predict([x_training[0]]))}\n")
+        print(f"\n\nUsing neural network algorithm:\nClassifying: {y_training[0]} and got {classifier_ANN.predict([x_training[0]])}\n")
         evaluate_classifier(x_testing, y_testing, classifier_ANN)
         return classifier_ANN
 
     # Testing with different classifiers
-    check_windows_in_image_with_classifier(classifier = get_trained_classifier("svc.pkl", SVC_training_method))
+    #check_windows_in_image_with_classifier(classifier = get_trained_classifier("svc.pkl", SVC_training_method))
     #check_windows_in_image_with_classifier(classifier = get_trained_classifier("knn.pkl", KNN_training_method))
-    #check_windows_in_image_with_classifier(classifier = get_trained_classifier("ann.pkl", ANN_training_method))
+    check_windows_in_image_with_classifier(classifier = get_trained_classifier("ann.pkl", ANN_training_method))
 
 def scan_image_for_area_with_less_white(x, y, image, white_percentage = 1):
     best_white = white_percentage
@@ -168,7 +163,7 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
 
         predicted = classifier.predict(img_array.reshape(1, -1))
         #print(f"predicted of window: {predicted}")
-        string += get_letter_prediction(predicted[0]) 
+        string += predicted[0]
         if len(predicted) > 0:
             if not imgCopy: 
                 imgCopy = img.copy()
