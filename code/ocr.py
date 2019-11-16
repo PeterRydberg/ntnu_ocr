@@ -9,7 +9,7 @@ from sklearn.metrics import classification_report
 from skimage.feature import hog
 import numpy as np
 import pickle
-
+import sys
 
 def create_dump_folder_for_images():
     print('Creating dump directory for output images')
@@ -34,6 +34,7 @@ def remove_unwanted_files(fileList):
 
 def get_image_as_array(filepath, use_hog, expand_inverted):
     img = Image.open(filepath)
+    img = Image.convert(mode="L")
     img.resize((20, 20))
     return convert_image_to_array(img, use_hog, expand_inverted)
 
