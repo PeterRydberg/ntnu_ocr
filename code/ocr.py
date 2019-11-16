@@ -126,10 +126,20 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
     # Override default image path if specified in arguments 
     if "--image" in sys.argv[1:]:
         index_of_file_path = sys.argv.index("--image")
-        image_path = f"./dataset/detection-images/{sys.argv[index_of_file_path + 1]}"
+        index_of_image_name = index_of_file_path + 1
+        if index_of_image_name > (len(sys.argv) -1):
+            print("Please specify the name of an image in the 'dataset/detection-images/'-folder when using --image.")
+            print("Stopping due to error above...")
+            return
+        image_path = f"./dataset/detection-images/{sys.argv[index_of_image_name]}"
     print(f"Running OCR on {image_path}")
 
-    img = Image.open(image_path)
+    try:
+        img = Image.open(image_path)
+    except FileNotFoundError:
+        print("\nERROR!")
+        print(f"{image_path} did not match any files in the 'dataset/detection-images/'-folder")
+        return
     imgCopy = img.convert(mode = "RGB")
     winHeight = 20
     winWidth = 20
@@ -198,6 +208,7 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
     if not "--no-dump" in sys.argv[1:]:
         imgCopy.save("./dump/output.png", "PNG")
     imgCopy.show()
+    print("\nIf the result image did not automatically open, it can be found in the dump folder.")
 
 
 if __name__ == "__main__":
