@@ -9,6 +9,7 @@ from sklearn.metrics import classification_report
 from skimage.feature import hog
 import numpy as np
 import pickle
+import pyttsx3
 
 
 def create_dump_folder_for_images():
@@ -224,6 +225,9 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
     for (x1, y1) in checked_squares.keys():
         imgCopy = draw_red_square(x = x1, y = y1, target_image = imgCopy)
     print(f"Most probable single solution: {cache_prediction}")
+    tts_engine = pyttsx3.init()
+    tts_engine.say(cache_prediction)
+    tts_engine.runAndWait()
     create_dump_folder_for_images()
     imgCopy.save("./dump/concat.png", "PNG")
 
