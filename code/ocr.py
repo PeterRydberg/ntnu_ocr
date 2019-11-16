@@ -79,11 +79,11 @@ def split(data, test_size):
 def get_trained_classifier(path, classifierTraining):
     savedExists = os.path.isfile(path)
     if savedExists:
-        print ("Getting pre-trained method")
+        print ("Getting pre-trained model")
         with open(path, "rb") as f:
             return pickle.load(f)
     else:
-        print("Training...")
+        print("Training model...")
         classifier = classifierTraining()
         with open(path, "wb+") as f:
             pickle.dump(classifier, f)
@@ -123,14 +123,20 @@ def main():
         return classifier_ANN
 
     # Testing with different classifiers
-    if arguments[0] == "svc":
+    if not arguments:
+        print("No method specified from command line, using ANN as default")
+        check_windows_in_image_with_classifier(classifier = get_trained_classifier("ann.pkl", ANN_training_method))
+    elif arguments[0] == "svc":
+        print("Using SVC")
         check_windows_in_image_with_classifier(classifier = get_trained_classifier("svc.pkl", SVC_training_method))
     elif arguments[0] == "knn":
+        print("Using KNN")
         check_windows_in_image_with_classifier(classifier = get_trained_classifier("knn.pkl", KNN_training_method))
     elif arguments[0] == "ann":
+        print("Using ANN")
         check_windows_in_image_with_classifier(classifier = get_trained_classifier("ann.pkl", ANN_training_method))
     else:
-        print("No method specified from command line, using ANN as default")
+        print("Did not recognize method specified from command line, using ANN as default")
         check_windows_in_image_with_classifier(classifier = get_trained_classifier("ann.pkl", ANN_training_method))
 
 def scan_image_for_area_with_less_white(x, y, image, white_percentage = 1):
@@ -234,11 +240,14 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
     for (x1, y1) in checked_squares.keys():
         imgCopy = draw_red_square(x = x1, y = y1, target_image = imgCopy)
     print(f"Most probable single solution: {cache_prediction}")
-    if sys.argv[2] == "--use-tts":
-        tts_engine = pyttsx3.init()
-        tts_engine.setProperty('rate', 10)
-        tts_engine.say(cache_prediction)
-        tts_engine.runAndWait()
+    if len(sys.argv) > 2 and "--use-tts" in sys.argv[2:]:
+        try:
+            tts_engine = pyttsx3.init()
+            tts_engine.setProperty('rate', 10)
+            tts_engine.say(cache_prediction)
+            tts_engine.runAndWait()
+        except OSError:
+            print("Failed to access local text-to-speech method for this device.")
     create_dump_folder_for_images()
     imgCopy.save("./dump/concat.png", "PNG")
 
