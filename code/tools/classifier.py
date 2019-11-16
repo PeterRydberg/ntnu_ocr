@@ -1,12 +1,16 @@
 import os
 from tools.data import get_data, split
 from sklearn.metrics import classification_report
+import sys
 import pickle
 
 
 def get_trained_classifier(path, classifierTraining, use_hog, expand_inverted):
     savedExists = os.path.isfile(path)
-    if savedExists:
+    retrain = "--train" in sys.argv[1:]
+    nosave = "--no-save" in sys.argv[1:]
+    
+    if savedExists and not retrain:
         print("Found .pkl-file matching model type")
         print("Getting pre-trained model...")
         with open(path, "rb") as f:
@@ -18,8 +22,11 @@ def get_trained_classifier(path, classifierTraining, use_hog, expand_inverted):
         
         classifier = classifierTraining(x_training, x_testing, y_training, y_testing)
         evaluate_classifier(x_testing, y_testing, classifier)
-        with open(path, "wb+") as f:
-            pickle.dump(classifier, f)
+        if not nosave:
+            if savedExists:
+                os.remove(path)
+            with open(path, "wb+") as f:
+                pickle.dump(classifier, f)
         return classifier
 
 def evaluate_classifier(inputs, outputs, classifier):
