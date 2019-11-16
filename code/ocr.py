@@ -29,7 +29,8 @@ Available commands: \n
         --no-save: Do not pickle and save trained classifier. \n
         --train: Ignore existing pickles and retrain classifier. \n
         --use-tts: Uses text-to-speech to read the perceived text. \n
-        --no-dump: Do not save output image to file.
+        --no-dump: Do not save output image to file. \n
+        --image: File name of an image in detection-images which will be used for the prediction.
         """)
         return
     """
@@ -56,6 +57,7 @@ Available commands: \n
         classifier_ANN.fit(x_training, y_training)
         print(f"\n\nUsing neural network algorithm:\nClassifying: {y_training[0]} and got {classifier_ANN.predict([x_training[0]])}\n")
         return classifier_ANN
+
 
     # Testing with different classifiers
     if not arguments:
@@ -121,6 +123,12 @@ def update_window_cache(window_cache, candidate_coords, prediction):
 
 
 def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/detection-images/detection-2.jpg"):
+    # Override default image path if specified in arguments 
+    if "--image" in sys.argv[1:]:
+        index_of_file_path = sys.argv.index("--image")
+        image_path = f"./dataset/detection-images/{sys.argv[index_of_file_path + 1]}"
+    print(f"Running OCR on {image_path}")
+
     img = Image.open(image_path)
     imgCopy = img.convert(mode = "RGB")
     winHeight = 20
@@ -189,6 +197,8 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
     create_dump_folder_for_images()
     if not "--no-dump" in sys.argv[1:]:
         imgCopy.save("./dump/output.png", "PNG")
+    imgCopy.show()
+
 
 if __name__ == "__main__":
     main()
