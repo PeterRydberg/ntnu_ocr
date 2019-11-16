@@ -103,8 +103,6 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-**/dataset
-
 
 # Created by https://www.gitignore.io/api/linux,macos,python,windows,jetbrains+all,visualstudiocode
 # Edit at https://www.gitignore.io/?templates=linux,macos,python,windows,jetbrains+all,visualstudiocode
