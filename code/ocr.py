@@ -1,6 +1,6 @@
 import os
 from PIL import Image, ImageDraw, ImageOps
-from imagetools import sliding_window, draw_red_square 
+from imagetools import sliding_window, draw_red_square, draw_grey_square 
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.neural_network import MLPClassifier
@@ -120,6 +120,7 @@ def main():
 def scan_image_for_area_with_less_white(x, y, image, white_percentage = 1):
     best_white = white_percentage
     best_image = None
+    image_coordinates = None
     for x1 in range(x - 15, x + 15):
         for y1 in range(y - 15, y + 15):
             candidate = image.crop([x1, y1, x1 + 20, y1 + 20])
@@ -127,14 +128,38 @@ def scan_image_for_area_with_less_white(x, y, image, white_percentage = 1):
             if white_in_candidate < best_white:
                 best_white = white_in_candidate
                 best_image = candidate
-    return best_image, best_white
+                image_coordinates = (x1, y1)
+    return best_image, best_white, image_coordinates
+
+def update_window_cache(window_cache, candidate_coords, prediction):
+    updated = False
+    # Check for matching coords in the already existing coords, and update if match in range
+    for (x1, y1) in window_cache.keys():
+        between_x = candidate_coords[0] > (x1 - 15) and candidate_coords[0] < (x1 + 20)
+        between_y = candidate_coords[1] > (y1 - 15) and candidate_coords[1] < (y1 + 20)
+        if between_x and between_y:
+            score_dict = window_cache[(x1, y1)]
+            if prediction in score_dict:
+                score_dict[prediction] += 1
+            else:
+                score_dict[prediction] = 1
+            window_cache[(x1, y1)] = score_dict
+            updated = True
+            break
+
+    # If no match was found, create a new entry with the given prediction
+    if not updated:
+        window_cache[candidate_coords] = {prediction: 1}
+    return window_cache 
+
 
 def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/detection-images/detection-2.jpg"):
     img = Image.open(image_path)
-    imgCopy = None
+    imgCopy = img.convert(mode = "RGB")
     winHeight = 20
     winWidth = 20
     string = ""
+    checked_squares = {}
     for (x, y, window) in sliding_window(img, stepSize = 8, windowSize=(winHeight, winWidth)):
         # Skip windows which surpasses image border
         if window.size[0] != winHeight or window.size[1] != winWidth:
@@ -142,29 +167,56 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
 
         white_percentage = get_percentage_of_white(window)
 
-        # If more tn 90 percent of the image is white, it is highly probable that the classifier will be incorrect
+        # If more than 90 percent of the image is white, it is highly probable that the classifier will be incorrect
         if white_percentage > 0.7:
             continue
 
-        best_candidate, best_white = scan_image_for_area_with_less_white(x, y, img, white_percentage)
+        best_candidate, best_white, best_cand_coords = scan_image_for_area_with_less_white(x, y, img, white_percentage)
         if best_white > 0.7:
             continue
         if best_candidate:
             window = best_candidate
+        
+        # If image has passed criterias, prepare it for prediction
         img_array = convert_image_to_array(window, use_hog = 1, expand_inverted = False)
 
-        # Skip completely white images
+        # Skip completely white images 
+        # TODO: Check whether this has any function now that we check white percentage
         if len(img_array) == 0:
             continue
 
         predicted = classifier.predict(img_array.reshape(1, -1))
+
+        """
+        CACHE BEGIN
+        This is a cache of squares already checked.
+        Whenever a new window is checked, after retrieving the best candidate in a square around the window,
+        it is checked for previous existence in the cache.
+        If the coordinates for this new candidate is inside another previous candidate, the prediction is added to a dictionary of possibilites for a square.
+        This can be utilized such that red squares only are drawn at the end, once for each most probable letter and that the printed text only
+        containes one of each character given a square
+        """
+        # If no better candidate was found, use x,y
+        best_cand_coords = best_cand_coords if best_cand_coords else (x, y)
+        # Init cache if empty
+        if len(checked_squares.keys()) == 0:
+            checked_squares[best_cand_coords] = {predicted[0]: 1}
+        else:
+            checked_squares = update_window_cache(window_cache = checked_squares, candidate_coords = best_cand_coords, prediction = predicted[0])
+
+
+        # CACHE END
+
         #print(f"predicted of window: {predicted}")
-        string += get_letter_prediction(predicted[0]) 
         if len(predicted) > 0:
-            if not imgCopy: 
-                imgCopy = img.copy()
-            imgCopy = draw_red_square(x = x, y = y, target_image = imgCopy, window = window)
-    print(string)
+            imgCopy = draw_grey_square(x = x, y = y, target_image = imgCopy, window = window)
+    cache_prediction = ""
+    for predictions in checked_squares.values():
+        most_probable_prediction = max(predictions.keys(), key=lambda key: predictions[key])
+        cache_prediction += most_probable_prediction
+    for (x1, y1) in checked_squares.keys():
+        imgCopy = draw_red_square(x = x1, y = y1, target_image = imgCopy)
+    print(f"Most probable single solution: {cache_prediction}")
     imgCopy.save("./dump/concat.png", "PNG")
 
 if __name__ == "__main__":
