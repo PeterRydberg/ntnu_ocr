@@ -147,7 +147,7 @@ def check_windows_in_image_with_classifier(classifier, image_path = "./dataset/d
     if len(sys.argv) > 1 and "--use-tts" in sys.argv[1:]:
         try:
             tts_engine = pyttsx3.init()
-            tts_engine.setProperty('rate', 10)
+            tts_engine.setProperty('rate', 20)
             tts_engine.say(cache_prediction)
             tts_engine.runAndWait()
         except OSError:
