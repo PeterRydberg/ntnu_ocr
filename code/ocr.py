@@ -13,11 +13,13 @@ import pickle
 
 def create_dump_folder_for_images():
     print('Creating dump directory for output images')
+    if os.path.exists("./dump"):
+        return
     try:
-        os.mkdir('./dump')
-        print('Successfully created dump folder')
+        os.mkdir("./dump")
+        print("Successfully created dump folder")
     except OSError:
-        print('Could not create a dump folder. Please create one in the same path as this file')
+        print("Could not create a dump folder. Please create one in the same path as this file")
 
 
 def try_remove_element_from_list(fileList, element):
